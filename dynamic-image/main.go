@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"image/color"
-
+	"net/http"
+	"os"
 	"github.com/fogleman/gg"
 )
 
-func main () {
+func makeImage(w http.ResponseWriter, r *http.Request){
 	image, err := gg.LoadImage("./white-image.jpg")
 	if(err != nil){
 		fmt.Println("this is error")
@@ -28,5 +29,17 @@ func main () {
 	}
 	dc.SetColor(color.Black)
 	dc.DrawStringWrapped("Hello World!", x, y, 0.5, 0.5, maxWidth, 3, gg.AlignCenter)
-	dc.SavePNG("custom-image.png")
+	// dc.SavePNG("custom-image.png")
+	w.Header().Set("content-type", "image/png")
+	dc.EncodePNG(w)
+}
+
+func main () {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/image", makeImage)
+
+	err := http.ListenAndServe(":3333", mux)
+	if(err != nil){
+		os.Exit(1)
+	}
 }

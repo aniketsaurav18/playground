@@ -9,6 +9,9 @@ import (
 )
 
 func makeImage(w http.ResponseWriter, r *http.Request){
+	remoteAddr := r.RemoteAddr
+	xForwardedFor := r.Header.Get("X-Forwarded-For")
+	xRealIP := r.Header.Get("X-Real-IP");
 	image, err := gg.LoadImage("./white-image.jpg")
 	if(err != nil){
 		fmt.Println("this is error")
@@ -28,7 +31,7 @@ func makeImage(w http.ResponseWriter, r *http.Request){
 		fmt.Println(err)
 	}
 	dc.SetColor(color.Black)
-	dc.DrawStringWrapped("Hello World!", x, y, 0.5, 0.5, maxWidth, 3, gg.AlignCenter)
+	dc.DrawStringWrapped(fmt.Sprintf("Hello %v \n %v \n %v", remoteAddr,xForwardedFor, xRealIP), x, y, 0.5, 0.5, maxWidth, 3, gg.AlignCenter)
 	// dc.SavePNG("custom-image.png")
 	w.Header().Set("content-type", "image/png")
 	dc.EncodePNG(w)
@@ -41,5 +44,7 @@ func main () {
 	err := http.ListenAndServe(":3333", mux)
 	if(err != nil){
 		os.Exit(1)
+	}else{
+		fmt.Println("server is runnign")
 	}
 }
